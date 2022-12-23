@@ -4,7 +4,13 @@
 - OAuth2
 
 # Authorization Server
+- RegisteredClientRepository
+- AuthorizationService
+- AuthorizationConsentService
+- ProviderSettings
+- TokenGenerator
 
 # Resource Server
+- JwtDecoder
 
 # Client
