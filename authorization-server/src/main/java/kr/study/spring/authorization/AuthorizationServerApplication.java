@@ -1,4 +1,4 @@
-package kr.study.spring;
+package kr.study.spring.authorization;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,4 +1,4 @@
-package kr.study.spring.config;
+package kr.study.spring.authorization.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
