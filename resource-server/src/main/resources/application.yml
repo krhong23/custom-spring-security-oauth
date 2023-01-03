@@ -1,0 +1,11 @@
+server:
+  port: 9090
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080
+secret:
+  key: 690995ba-f0c9-4ed8-8816-1e701e69299d
