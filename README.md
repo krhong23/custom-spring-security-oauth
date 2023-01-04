@@ -9,6 +9,7 @@
 - AuthorizationConsentService
 - ProviderSettings
 - TokenGenerator
+- Jwt: RSA256, HS256
 
 # Resource Server
 - JwtDecoder
