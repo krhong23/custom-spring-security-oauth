@@ -1,9 +1,11 @@
 package kr.study.spring.authorization.config;
 
-import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import org.springframework.beans.factory.annotation.Value;
+import kr.study.spring.authorization.util.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -11,25 +13,21 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.ProviderSettings;
 import org.springframework.security.oauth2.server.authorization.config.TokenSettings;
-import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
-import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 
-import java.nio.charset.StandardCharsets;
+import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.util.UUID;
 
 @Configuration(proxyBeanMethods = false)
 public class OAuth2AuthorizationServerConfig {
-
-    @Value("${secret.key}")
-    private String secretKey;
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -56,20 +54,45 @@ public class OAuth2AuthorizationServerConfig {
     }
 
     @Bean
-    public JWKSource<SecurityContext> jwkSource() {
-        return new ImmutableSecret<>(secretKey.getBytes(StandardCharsets.UTF_8));
-    }
-
-    @Bean
-    public OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer() {
-        return context -> context.getHeaders()
-                .algorithm(MacAlgorithm.HS256)
-                .type("JWT");
-    }
-
-    @Bean
     public ProviderSettings providerSettings() {
         return ProviderSettings.builder().issuer("http://localhost:8080").build();
     }
 
+    @Bean
+    public JWKSource<SecurityContext> jwkSource() {
+        RSAKey rsaKey = JwtUtil.generateRsaKey();
+        JWKSet jwkSet = new JWKSet(rsaKey);
+        return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder() throws JOSEException {
+        RSAKey rsaKey = JwtUtil.generateRsaKey();
+        RSAPublicKey publicKey = (RSAPublicKey) rsaKey.toPublicKey();
+        return NimbusJwtDecoder.withPublicKey(publicKey)
+                .build();
+    }
+
+    /**
+     * HS256 방식 사용 시
+     *
+     * @return
+     */
+//    @Bean
+//    public JWKSource<SecurityContext> jwkSource() {
+//        return new ImmutableSecret<>(secretKey.getBytes(StandardCharsets.UTF_8));
+//    }
+//    @Bean
+//    public OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer() {
+//        return context -> context.getHeaders()
+//                .algorithm(MacAlgorithm.HS256)
+//                .type("JWT");
+//    }
+//    @Bean
+//    public JwtDecoder jwtDecoder() throws Exception {
+//        byte[] key = secretKey.getBytes(StandardCharsets.UTF_8);
+//        SecretKey secretKey = new SecretKeySpec(key, "HmacSHA256");
+//        return NimbusJwtDecoder.withSecretKey(secretKey)
+//                .build();
+//    }
 }
