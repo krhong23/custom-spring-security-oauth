@@ -6,21 +6,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.web.SecurityFilterChain;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @EnableWebSecurity(debug = true)
 public class ResourceServerConfig {
 
-    @Value("${secret.key}")
-    private String secretKey;
+    private String issuerUri;
+
+    public ResourceServerConfig(@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri) {
+        this.issuerUri = issuerUri;
+    }
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -38,9 +36,6 @@ public class ResourceServerConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        byte[] key = secretKey.getBytes(StandardCharsets.UTF_8);
-        SecretKey secretKey = new SecretKeySpec(key, "HmacSHA256");
-        return NimbusJwtDecoder.withSecretKey(secretKey)
-                .build();
+        return JwtDecoders.fromIssuerLocation(issuerUri);
     }
 }
